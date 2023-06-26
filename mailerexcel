@@ -1,0 +1,202 @@
+import tkinter as tk
+import tkinter.filedialog as filedialog
+from tkinter import messagebox
+import pandas as pd
+import smtplib
+import random
+
+
+def send_emails():
+    sender_email = sender_email_entry.get()
+    password = sender_password_entry.get()
+    subject = subject_entry.get()
+    message = message_text.get("1.0", tk.END)
+    file_path = file_path_entry.get()
+    delay_seconds = delay_entry.get()
+    mark_as_urgent = urgent_checkbox_var.get()
+
+    try:
+        # Read recipient emails from the Excel file
+        df = pd.read_excel(file_path)
+        recipient_emails = df["Email"].tolist()
+
+        # Create SMTP server connection
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, password)
+
+        send_email_recursive(
+            server,
+            sender_email,
+            recipient_emails,
+            subject,
+            message,
+            delay_seconds,
+            0,
+            mark_as_urgent,
+        )
+
+    except FileNotFoundError:
+        messagebox.showerror(
+            "Error", "File not found. Please select a valid Excel file."
+        )
+    except smtplib.SMTPAuthenticationError:
+        messagebox.showerror(
+            "Error",
+            "Invalid email or password. Please check your credentials and try again.",
+        )
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+        server.quit()
+
+
+def send_email_recursive(
+    server,
+    sender_email,
+    recipient_emails,
+    subject,
+    message,
+    delay_seconds,
+    index,
+    mark_as_urgent,
+):
+    if index >= len(recipient_emails):
+        server.quit()
+        messagebox.showinfo("Success", "All emails have been sent successfully.")
+        return
+
+    recipient_email = recipient_emails[index]
+
+    msg = f"Subject: {subject}\n\n{message}"
+
+    if mark_as_urgent:
+        msg = f"X-Priority: 2 (High)\n{msg}"
+
+    try:
+        server.sendmail(sender_email, recipient_email, msg)
+
+        # Calculate the delay duration and add some randomness
+        delay = random.uniform(0.5, 1.5) * int(delay_seconds)
+
+        # Wait for the specified delay before sending the next email
+        window.after(
+            int(delay * 1000),
+            send_email_recursive,
+            server,
+            sender_email,
+            recipient_emails,
+            subject,
+            message,
+            delay_seconds,
+            index + 1,
+            mark_as_urgent,
+        )
+
+    except Exception as e:
+        messagebox.showerror(
+            "Error", f"An error occurred while sending email {index + 1}: {str(e)}"
+        )
+        server.quit()
+
+
+def browse_file():
+    # Open a file dialog to select an Excel file
+    file_path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
+    file_path_entry.delete(0, tk.END)
+    file_path_entry.insert(tk.END, file_path)
+
+
+# Create the main window
+window = tk.Tk()
+window.title("Email Sender")
+
+# Maximize the window
+window.state("zoomed")
+
+# Get screen width and height
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+
+# Create the menu bar
+menu_bar = tk.Menu(window)
+window.config(menu=menu_bar)
+
+# Create the "About" menu
+about_menu = tk.Menu(menu_bar, tearoff=0)
+about_menu.add_command(
+    label="About Me",
+    command=lambda: messagebox.showinfo("About Me", "Developer: Peaskeeper \U0001F600"),
+)
+menu_bar.add_cascade(label="About", menu=about_menu)
+
+# Create the left frame for options
+left_frame = tk.Frame(window)
+left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+# Create the right frame for instructions
+right_frame = tk.Frame(window, bg="lightgray")
+right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+# Create and position the GUI elements in the left frame
+sender_email_label = tk.Label(left_frame, text="Sender Email:", font=("Arial", 12))
+sender_email_label.pack(anchor=tk.W, padx=20, pady=10)
+sender_email_entry = tk.Entry(left_frame, font=("Arial", 12))
+sender_email_entry.pack(anchor=tk.W, padx=20)
+
+sender_password_label = tk.Label(left_frame, text="Password:", font=("Arial", 12))
+sender_password_label.pack(anchor=tk.W, padx=20, pady=10)
+sender_password_entry = tk.Entry(left_frame, show="*", font=("Arial", 12))
+sender_password_entry.pack(anchor=tk.W, padx=20)
+
+subject_label = tk.Label(left_frame, text="Subject:", font=("Arial", 12))
+subject_label.pack(anchor=tk.W, padx=20, pady=10)
+subject_entry = tk.Entry(left_frame, font=("Arial", 12))
+subject_entry.pack(anchor=tk.W, padx=20)
+
+message_label = tk.Label(left_frame, text="Message:", font=("Arial", 12))
+message_label.pack(anchor=tk.W, padx=20, pady=10)
+message_text = tk.Text(left_frame, height=5, width=30, font=("Arial", 12))
+message_text.pack(anchor=tk.W, padx=20)
+
+file_path_label = tk.Label(left_frame, text="Recipient Emails:", font=("Arial", 12))
+file_path_label.pack(anchor=tk.W, padx=20, pady=10)
+file_path_entry = tk.Entry(left_frame, font=("Arial", 12))
+file_path_entry.pack(anchor=tk.W, padx=20)
+browse_button = tk.Button(
+    left_frame, text="Browse", font=("Arial", 12), command=browse_file
+)
+browse_button.pack(anchor=tk.W, padx=20)
+
+delay_label = tk.Label(left_frame, text="Delay (seconds):", font=("Arial", 12))
+delay_label.pack(anchor=tk.W, padx=20, pady=10)
+delay_entry = tk.Entry(left_frame, font=("Arial", 12))
+delay_entry.pack(anchor=tk.W, padx=20)
+
+urgent_checkbox_var = tk.IntVar()
+urgent_checkbox = tk.Checkbutton(
+    left_frame, text="Mark as Urgent", font=("Arial", 12), variable=urgent_checkbox_var
+)
+urgent_checkbox.pack(anchor=tk.W, padx=20, pady=10)
+
+send_button = tk.Button(
+    left_frame, text="Send Emails", font=("Arial", 12), command=send_emails
+)
+send_button.pack(anchor=tk.W, padx=20, pady=20)
+
+# Create and position the GUI elements in the right frame
+instructions_label = tk.Label(
+    right_frame, text="Instructions", font=("Arial", 16, "bold"), bg="lightgray"
+)
+instructions_label.pack(pady=20)
+instructions_text = tk.Text(
+    right_frame, font=("Arial", 12), bg="lightgray", wrap=tk.WORD, width=40, height=10
+)
+instructions_text.insert(
+    tk.END,
+    '1. Open the Bulk Email Sender GUI application.\n\n2. Fill in the following fields:\n   - "Sender Email": Enter your email address from which you want to send the emails.\n   - "Sender Password": Enter the password for your email account. Note: The application does not store or save your password.\n   - "Subject": Enter the subject of the email.\n   - "Message": Enter the body of the email.\n\n3. Click on the "Recipient Emails (Excel)" field and browse your computer to select an Excel file (.xlsx) that contains the list of recipient emails. Ensure that the file has a column named "Email" containing the email addresses of the recipients.\n\n4. Specify the delay between sending each email in seconds. This helps prevent overwhelming the email server. It is recommended to use a delay of a few seconds (e.g., 2-5 seconds).\n\n5. (Optional) Check the "Mark as Urgent and Important" checkbox if you want to mark the emails as urgent and important.\n\n6. Click on the "Send Emails" button to start sending the emails.\n\n7. The application will begin sending the emails one by one. The status label will display the progress, indicating which email is being sent.\n\n8. Once all the emails have been sent, a success message will be displayed.\n\nNote: It is important to ensure that you have a stable internet connection and that the email account you provided has the necessary permissions to send emails.',
+)
+instructions_text.config(state=tk.DISABLED)
+instructions_text.pack(padx=20, pady=10)
+
+# Start the GUI event loop
+window.mainloop()
