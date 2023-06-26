@@ -1,0 +1,62 @@
+Bulk Email Sender is a Python application that allows you to send emails to multiple recipients using your Outlook email account. It provides a user-friendly GUI (Graphical User Interface) for entering the necessary details, selecting recipient emails from an Excel file, and sending personalized emails.
+
+## Features
+
+- Sends personalized emails to multiple recipients
+- Uses Outlook SMTP server for sending emails
+- Supports specifying a delay between each email to avoid overwhelming the server
+- Option to mark emails as urgent and important
+- Provides a progress status for tracking the email sending process
+
+## Requirements
+
+- Python 3.x
+- tkinter module (included in the standard library)
+- pandas library (`pip install pandas`)
+- openpyxl library (`pip install openpyxl`)
+
+## Usage
+
+1. Install the required dependencies listed above.
+2. Run the `bulk_email_sender.py` script using Python: `python bulk_email_sender.py`.
+3. The application window will open.
+4. Fill in the following fields:
+   - "Sender Email": Enter your Outlook email address from which you want to send the emails.
+   - "Sender Password": Enter the password for your Outlook account. Note: The application does not store or save your password.
+   - "Subject": Enter the subject of the email.
+   - "Message": Enter the body of the email.
+5. Click on the "Recipient Emails (Excel)" field and browse your computer to select an Excel file (.xlsx) that contains the list of recipient emails. Ensure that the file has a column named "Email" containing the email addresses of the recipients.
+6. Specify the delay between sending each email in seconds. This helps prevent overwhelming the email server. It is recommended to use a delay of a few seconds (e.g., 2-5 seconds).
+7. (Optional) Check the "Mark as Urgent" checkbox if you want to mark the emails as urgent and important.
+8. Click on the "Send Emails" button to start sending the emails.
+9. The application will begin sending the emails one by one. The progress status label will display the progress, indicating which email is being sent.
+10. Once all the emails have been sent, a success message will be displayed.
+
+Note: It is important to ensure that you have a stable internet connection and that the Outlook account you provided has the necessary permissions to send emails.
+
+## Important Notes
+
+- The recipient emails should be provided in an Excel file (.xlsx) format, with a column named "Email" containing the email addresses of the recipients.
+- The application uses the Outlook SMTP server to send emails. Therefore, you need to provide a valid Outlook email address and password.
+- The application uses a delay between sending each email to avoid overwhelming the server. Please use this feature responsibly and consider the limitations of your email service provider.
+- The application relies on the accuracy and consistency of the recipient email addresses. Ensure that the Excel file contains valid and accessible email addresses.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Feel free to modify and enhance the code according to your needs.
+
+## Acknowledgements
+
+- The Bulk Email Sender application was developed by [Your Name].
+- It utilizes the [Pandas](https://pandas.pydata.org) library for data manipulation and analysis.
+- It also uses the [OpenPyXL](https://openpyxl.readthedocs.io) library for working with Excel files.
+
+## Contributing
+
+Contributions to the project are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new features, please submit an issue or a pull request.
+
+---
+
+Feel free
